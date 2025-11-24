@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "yHVrjXqqkt4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\robby\\Desktop\\rpsBackend\\RPSBackend\\RPSBackend.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\robby\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.0\\microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512",
+    "C:\\Users\\robby\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\10.0.0\\microsoft.entityframeworkcore.tools.10.0.0.nupkg.sha512",
+    "C:\\Users\\robby\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}

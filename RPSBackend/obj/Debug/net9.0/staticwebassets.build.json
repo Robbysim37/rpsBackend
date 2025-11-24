@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "ObMP29ttyGTnWlqJHqXsIHey6J1W7Bl3UkLC8hE0Jc4=",
+  "Source": "RPSBackend",
+  "BasePath": "_content/RPSBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

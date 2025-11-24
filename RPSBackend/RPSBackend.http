@@ -1,0 +1,6 @@
+@RPSBackend_HostAddress = http://localhost:5049
+
+GET {{RPSBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
