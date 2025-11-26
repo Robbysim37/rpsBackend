@@ -1,27 +1,35 @@
+using Microsoft.EntityFrameworkCore;
+using RpsBackend.Data;
 using RpsBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Enable controllers (MVC-style endpoints)
-builder.Services.AddControllers();
-builder.Services.AddScoped<RpsAiService>();
-builder.Services.AddScoped<AlgorithmTestingService>();
+// DbContext
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
-// Optional: Generates an OpenAPI JSON at /openapi/v1.json
-// You can ignore this if you don't use it.
-builder.Services.AddOpenApi();
+Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+// Controllers
+builder.Services.AddControllers();
+
+// Your services
+builder.Services.AddScoped<RpsGameService>();
+builder.Services.AddScoped<AlgorithmTestingService>();
 
 var app = builder.Build();
 
+// Dev-only stuff if you want later
 if (app.Environment.IsDevelopment())
 {
-    // Exposes the raw OpenAPI JSON (not Swagger UI)
-    app.MapOpenApi();
+    // app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
 
-// Map your controllers in /Controllers folder
 app.MapControllers();
 
 app.Run();

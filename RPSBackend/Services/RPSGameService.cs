@@ -1,6 +1,6 @@
 namespace RpsBackend.Services;
 
-public class RpsAiService
+public class RpsGameService
 {
 
     private readonly string[] _validMoves = { "R", "P", "S" };
