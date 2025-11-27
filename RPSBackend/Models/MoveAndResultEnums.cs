@@ -1,13 +1,13 @@
 public enum Move
 {
-    Rock,
-    Paper,
-    Scissors
+    Rock = 0,
+    Paper = 1,
+    Scissors = 2
 }
 
 public enum Result
 {
-    Win,
-    Loss,
-    Tie,
+    Win  = 0,
+    Loss = 1,
+    Tie  = 2
 }

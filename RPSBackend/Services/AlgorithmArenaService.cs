@@ -1,55 +1,58 @@
-namespace RpsBackend.Services;
-using RpsBackend.DTOs;
-
-
-
-/// Playground for testing and comparing different RPS algorithms.
-/// - Simulate algorithm vs algorithm (e.g., RNG vs first-order Markov)
-/// - Run human input sequences against a chosen algorithm
-/// - Collect stats and diagnostics for analysis
-
-public class AlgorithmTestingService
+namespace RpsBackend.Services
 {
+    using RpsBackend.DTOs;
 
-    private readonly RpsAiService _aiService;
 
-    public AlgorithmTestingService(RpsAiService aiService)
+    /// Playground for testing and comparing different RPS algorithms.
+    /// - Simulate algorithm vs algorithm (e.g., RNG vs first-order Markov)
+    /// - Run human input sequences against a chosen algorithm
+    /// - Collect stats and diagnostics for analysis
+    /// 
+    public class AlgorithmTestingService
     {
-        _aiService = aiService;
-    }
+        private readonly RpsGameService _gameService;
 
-    public AlgorithmTestingResultsDto RNGvsRNG(int numberOfGames)
-    {
-        var collectionOfGames = new AlgorithmTestingResultsDto
+        public AlgorithmTestingService(RpsGameService gameService)
         {
-            numberOfGames = numberOfGames
-        };
-
-        for (int i = 0; i < numberOfGames; i++)
-        {
-            string playerOneMove = _aiService.RandomMove();
-            string playerTwoMove = _aiService.RandomMove();
-
-            if (_aiService.GetWinner(playerOneMove,playerTwoMove) == "Human")
-            {
-                collectionOfGames.wins += 1;
-            }
-            else if (_aiService.GetWinner(playerOneMove,playerTwoMove) == "AI")
-            {
-                collectionOfGames.losses += 1;
-            } 
-            else
-            {
-                collectionOfGames.ties += 1;
-            }
+            _gameService = gameService;
         }
 
-        
+        public AlgorithmTestingResultsDto RNGvsRNG(int numberOfGames)
+        {
+            var results = new AlgorithmTestingResultsDto
+            {
+                numberOfGames = numberOfGames,
+                wins = 0,
+                losses = 0,
+                ties = 0
+            };
 
-        collectionOfGames.wins = collectionOfGames.wins / numberOfGames;
-        collectionOfGames.losses = collectionOfGames.losses / numberOfGames;
-        collectionOfGames.ties = collectionOfGames.ties / numberOfGames;
+            for (int i = 0; i < numberOfGames; i++)
+            {
+                // Both players use RNG for this sim
+                Move playerOneMove = _gameService.RandomMove();
+                Move playerTwoMove = _gameService.RandomMove();
 
-        return collectionOfGames;
+                // Pure logic — no DB write
+                Result outcome = _gameService.playWithoutPersist(playerOneMove, playerTwoMove);
+
+                switch (outcome)
+                {
+                    case Result.Win:
+                        results.wins++;
+                        break;
+                    case Result.Loss:
+                        results.losses++;
+                        break;
+                    case Result.Tie:
+                        results.ties++;
+                        break;
+                }
+            }
+
+            // If you want rates instead of counts, you can calculate them on the caller/frontend.
+
+            return results;
+        }
     }
 }

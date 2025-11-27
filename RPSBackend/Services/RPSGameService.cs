@@ -1,41 +1,65 @@
-namespace RpsBackend.Services;
+using RpsBackend.Data;
+using RpsBackend.Models;
 
-public class RpsGameService
+namespace RpsBackend.Services
 {
-
-    private readonly string[] _validMoves = { "R", "P", "S" };
-
-    public IReadOnlyList<string> ValidMoves => _validMoves;
-
-    public string GetWinner(string humanMove, string aiMove)
+    public class RpsGameService
     {
+        private readonly AppDbContext _db;
+
+        // Valid moves are now enums
+        private readonly Move[] _validMoves = { Move.Rock, Move.Paper, Move.Scissors };
+        public IReadOnlyList<Move> ValidMoves => _validMoves;
+
+        public RpsGameService(AppDbContext db)
+        {
+            _db = db;
+        }
+
+        public Result playWithoutPersist(Move humanMove, Move aiMove)
+        {
+            return ComputeResult(humanMove, aiMove);
+        }
+
         
-        if (humanMove == aiMove)
-            return "Tie";
+        /// Plays a game, persists it, and returns the result.
+        /// 
+        public async Task<Result> PlayAndPersistAsync(Move humanMove, Move aiMove)
+        {
+            var result = ComputeResult(humanMove, aiMove);
 
-        // Rock beats Scissors
-        if (humanMove == "R" && aiMove == "S") return "Human";
-        if (humanMove == "S" && aiMove == "R") return "AI";
+            var game = new AnonymousGame
+            {
+                HumanMove    = humanMove,
+                AiMove       = aiMove,
+                HumansResult = result
+            };
 
-        // Paper beats Rock
-        if (humanMove == "P" && aiMove == "R") return "Human";
-        if (humanMove == "R" && aiMove == "P") return "AI";
+            _db.AnonymousGames.Add(game);
+            await _db.SaveChangesAsync();
 
-        // Scissors beats Paper
-        if (humanMove == "S" && aiMove == "P") return "Human";
-        if (humanMove == "P" && aiMove == "S") return "AI";
+            return result;
+        }
 
-        // Should never get here
-        return "Tie";
-    
-    }
+        public Move RandomMove()
+        {
+            var rnd = Random.Shared;
+            var index = rnd.Next(_validMoves.Length);
+            return _validMoves[index];
+        }
 
-    //big boy logic
+        private static Result ComputeResult(Move human, Move ai)
+        {
+            if (human == ai)
+                return Result.Tie;
 
-    public string RandomMove()
-    {
-        var rnd = Random.Shared;
-        var index = rnd.Next(_validMoves.Length);
-        return ValidMoves[index];
+            return (human, ai) switch
+            {
+                (Move.Rock,     Move.Scissors) => Result.Win,
+                (Move.Scissors, Move.Paper)    => Result.Win,
+                (Move.Paper,    Move.Rock)     => Result.Win,
+                _                               => Result.Loss
+            };
+        }
     }
 }

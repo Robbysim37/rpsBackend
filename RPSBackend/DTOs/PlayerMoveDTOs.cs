@@ -1,22 +1,15 @@
+using RpsBackend.Models;
 namespace RpsBackend.DTOs
 {
     public class PlayRequestDto
     {
-        // "R", "P", or "S"
-        public string HumanMove { get; set; } = string.Empty;
-
-        // Optional - frontend can send it or leave null
-        public string? Location { get; set; }
-
-        // Optional - can be Google ID later
-        public string? UserId { get; set; }
+        public Move HumanMove { get; set; }
     }
 
     public class PlayResponseDto
     {
-        public string AIMove { get; set; } = string.Empty;
-
-        public string Winner { get; set; } = string.Empty;
+        public Move AIMove { get; set; }
+        public Result Winner { get; set; }
     }
 
     public class SessionMoveHistory
