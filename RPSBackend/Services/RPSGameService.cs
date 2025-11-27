@@ -24,13 +24,13 @@ namespace RpsBackend.Services
         
         /// Plays a game, persists it, and returns the result.
         /// 
-        public async Task<Result> PlayAndPersistAsync(Move humanMove, Move aiMove)
+        public async Task<Result> PlayAndPersistAsync(Move[] humanMoves, Move aiMove)
         {
-            var result = ComputeResult(humanMove, aiMove);
+            var result = ComputeResult(humanMoves[humanMoves.Length -1], aiMove);
 
             var game = new AnonymousGame
             {
-                HumanMove    = humanMove,
+                HumanMove    = humanMoves[humanMoves.Length -1],
                 AiMove       = aiMove,
                 HumansResult = result
             };

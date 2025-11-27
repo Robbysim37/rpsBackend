@@ -20,8 +20,23 @@ builder.Services.AddControllers();
 // Your services
 builder.Services.AddScoped<RpsGameService>();
 builder.Services.AddScoped<AlgorithmTestingService>();
+builder.Services.AddScoped<StatsGatheringService>();
+
+// CORS compliance
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithOrigins("http://localhost:5173"); // your frontend dev server
+    });
+});
 
 var app = builder.Build();
+
+app.UseCors("AllowFrontend");
 
 // Dev-only stuff if you want later
 if (app.Environment.IsDevelopment())

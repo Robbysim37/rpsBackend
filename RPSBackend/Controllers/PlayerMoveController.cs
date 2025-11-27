@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using RpsBackend.DTOs;
-using RpsBackend.Models;
 using RpsBackend.Services;
 
 namespace RpsBackend.Controllers;
@@ -31,21 +30,23 @@ public class PlayController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<PlayResponseDto>> Play([FromBody] PlayRequestDto request)
     {
-        var humanMove = request.HumanMove;
+        var humanMoves = request.HumanMoves;
 
         // validate enum (just in case)
-        if (!_gameService.ValidMoves.Contains(humanMove))
+        foreach(var humanMove in humanMoves){
+            if (!_gameService.ValidMoves.Contains(humanMove))
         {
             return BadRequest("Invalid move.");
+        }
         }
 
         var aiMove = _gameService.RandomMove();
 
-        var result = await _gameService.PlayAndPersistAsync(humanMove, aiMove);
+        var result = await _gameService.PlayAndPersistAsync(humanMoves, aiMove);
 
         var response = new PlayResponseDto
         {
-            AIMove = aiMove,
+            AiMove = aiMove,
             Winner = result
         };
 

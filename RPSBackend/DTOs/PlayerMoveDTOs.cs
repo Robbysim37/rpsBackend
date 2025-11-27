@@ -3,12 +3,13 @@ namespace RpsBackend.DTOs
 {
     public class PlayRequestDto
     {
-        public Move HumanMove { get; set; }
+        public Move[] HumanMoves { get; set; } = Array.Empty<Move>();
+        public Result[]? PreviousHumanResults { get; set; }
     }
 
     public class PlayResponseDto
     {
-        public Move AIMove { get; set; }
+        public Move AiMove { get; set; }
         public Result Winner { get; set; }
     }
 
