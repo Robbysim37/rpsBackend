@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using RpsBackend.Models;
 using RpsBackend.Services;
 
 namespace RpsBackend.Controllers;
@@ -19,9 +18,13 @@ public class StatsController : ControllerBase
 
     // GET api/stats
     [HttpGet]
-    public async Task<ActionResult<AnonymousGame[]>> GetAllGames()
+    public async Task<ActionResult<AllAnonymousGamesDto>> GetAllGames()
     {
-        var games = await _statsGatheringService.GetAllAnonymousGames();
-        return Ok(games);
+        var response = new AllAnonymousGamesDto
+        {
+            anonymousGames = await _statsGatheringService.GetAllAnonymousGames()
+        };
+
+        return Ok(response);
     }
 }

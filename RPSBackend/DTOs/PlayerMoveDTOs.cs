@@ -1,4 +1,3 @@
-using RpsBackend.Models;
 namespace RpsBackend.DTOs
 {
     public class PlayRequestDto
