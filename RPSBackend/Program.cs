@@ -14,6 +14,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
 
+// changes
+
 // Controllers
 builder.Services.AddControllers();
 
