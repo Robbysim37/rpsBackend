@@ -4,17 +4,19 @@ using RpsBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DefaultConnection")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+// This will read from:
+// appsettings.json
+// appsettings.{Environment}.json  (e.g. Development)
+// user-secrets (if configured)
+// env vars (for ConnectionStrings:DefaultConnection)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+Console.WriteLine($"Using connection string: {connectionString}");
 
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
-
-Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
-
-// changes
 
 // Controllers
 builder.Services.AddControllers();
