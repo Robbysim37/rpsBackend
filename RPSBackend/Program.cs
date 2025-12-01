@@ -36,7 +36,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins("http://localhost:5173","https://rps-frontend-1dzl.vercel.app/");
+            .SetIsOriginAllowed(_ => true); // <-- allow ALL origins
     });
 });
 
