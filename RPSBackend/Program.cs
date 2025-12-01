@@ -9,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // appsettings.{Environment}.json  (e.g. Development)
 // user-secrets (if configured)
 // env vars (for ConnectionStrings:DefaultConnection)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString =
+    Environment.GetEnvironmentVariable("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 Console.WriteLine($"Using connection string: {connectionString}");
 
