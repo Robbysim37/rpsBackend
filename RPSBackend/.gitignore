@@ -4,3 +4,4 @@ obj/
 *.suo
 *.cache
 .vs/
+appsettings.Development.json
