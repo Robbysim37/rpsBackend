@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using RpsBackend.Data;
 using RpsBackend.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using RpsBackend.Config;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// This will read from:
-// appsettings.json
-// appsettings.{Environment}.json  (e.g. Development)
-// user-secrets (if configured)
-// env vars (for ConnectionStrings:DefaultConnection)
+
 var connectionString =
     Environment.GetEnvironmentVariable("DefaultConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
@@ -23,10 +24,41 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Controllers
 builder.Services.AddControllers();
 
-// Your services
+// Services
 builder.Services.AddScoped<RpsGameService>();
 builder.Services.AddScoped<AlgorithmTestingService>();
 builder.Services.AddScoped<StatsGatheringService>();
+builder.Services.AddScoped<IUser, UserService>();
+
+// Bind Jwt settings
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
+
+// Register JWT generator service
+builder.Services.AddScoped<IJwt, JwtService>();
+
+// JWT Bearer validation middleware
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwt.Issuer,
+
+            ValidateAudience = true,
+            ValidAudience = jwt.Audience,
+
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2)
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 
 // CORS compliance
 builder.Services.AddCors(options =>
@@ -44,11 +76,8 @@ var app = builder.Build();
 
 app.UseCors("AllowFrontend");
 
-// Dev-only stuff if you want later
-if (app.Environment.IsDevelopment())
-{
-    // app.UseDeveloperExceptionPage();
-}
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseHttpsRedirection();
 
