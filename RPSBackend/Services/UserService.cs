@@ -14,6 +14,13 @@ namespace RpsBackend.Services
             _db = db;
         }
 
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            return await _db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId);
+        }
+
         public async Task<User> GetOrCreateFromGoogleAsync(GoogleJsonWebSignature.Payload payload)
         {
             var googleSub = payload.Subject;

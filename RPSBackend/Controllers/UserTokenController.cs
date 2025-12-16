@@ -1,7 +1,9 @@
-using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RpsBackend.DTOs;
 using RpsBackend.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace RpsBackend.Controllers;
 
@@ -9,58 +11,73 @@ namespace RpsBackend.Controllers;
 [Route("auth/[controller]")]
 public class UserTokenController : ControllerBase
 {
-    private readonly IConfiguration _config;
     private readonly IUser _userService;
     private readonly IJwt _jwtService;
+    private readonly AuthService _authService;
 
-// inject it in constructor
-public UserTokenController(IConfiguration config, IUser userService, IJwt jwtService)
-{
-    _config = config;
-    _userService = userService;
-    _jwtService = jwtService;
-}
+    public UserTokenController(IUser userService, IJwt jwtService, AuthService authService)
+    {
+        _userService = userService;
+        _jwtService = jwtService;
+        _authService = authService;
+    }
 
     [HttpPost]
     public async Task<IActionResult> ReceiveGoogleId([FromBody] GoogleIdTokenRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.IdToken))
-        {
-            return BadRequest(new { error = "Missing idToken" });
-        }
-
-        var googleClientId = _config["GoogleAuth:ClientId"];
-        if (string.IsNullOrWhiteSpace(googleClientId))
-        {
-            return StatusCode(500, new { error = "Google client ID is not configured" });
-        }
-
-        GoogleJsonWebSignature.Payload payload;
         try
         {
-            payload = await GoogleJsonWebSignature.ValidateAsync(
-                request.IdToken,
-                new GoogleJsonWebSignature.ValidationSettings
+            var payload = await _authService.VerifyGoogleIdAsync(request.IdToken);
+
+            var user = await _userService.GetOrCreateFromGoogleAsync(payload);
+
+            var appJwt = _jwtService.GenerateToken(user);
+
+            return Ok(new AuthResponseDto
+            {
+                Token = appJwt,
+                User = new AuthUserDto
                 {
-                    Audience = new[] { googleClientId }
-                });
+                    Id = user.Id,
+                    Name = user.Name,
+                    AvatarUrl = user.AvatarUrl
+                }
+            });
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
-            Console.WriteLine($"Invalid Google ID token: {ex.Message}");
-            return Unauthorized(new { error = "Invalid Google ID token" });
+            return BadRequest(new { error = ex.Message });
         }
-
-        // At this point, token is valid and we have a trusted payload
-
-        var user = await _userService.GetOrCreateFromGoogleAsync(payload);
-
-        var appJwt = _jwtService.GenerateToken(user);
-
-        return Ok(new
+        catch (UnauthorizedAccessException ex)
         {
-            token = appJwt,
-            user = new { user.Id, user.Name, user.AvatarUrl }
+            return Unauthorized(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<MeResponseDto>> Me()
+    {
+        var userIdStr = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        if (!int.TryParse(userIdStr, out var userId))
+            return Unauthorized();
+            
+        var user = await _userService.GetUserByIdAsync(userId);
+
+        if (user is null)
+            return Unauthorized(); 
+
+        System.Diagnostics.Debug.WriteLine("hit");
+
+        return Ok(new MeResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            AvatarUrl = user.AvatarUrl
         });
     }
 }

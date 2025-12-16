@@ -29,6 +29,7 @@ builder.Services.AddScoped<RpsGameService>();
 builder.Services.AddScoped<AlgorithmTestingService>();
 builder.Services.AddScoped<StatsGatheringService>();
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<AuthService>();
 
 // Bind Jwt settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
@@ -59,16 +60,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-
-// CORS compliance
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("CorsPolicy", policy =>
     {
         policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "https://rps-frontend-tan.vercel.app/" 
+            )
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .SetIsOriginAllowed(_ => true); // <-- allow ALL origins
+            .AllowAnyMethod();
     });
 });
 
