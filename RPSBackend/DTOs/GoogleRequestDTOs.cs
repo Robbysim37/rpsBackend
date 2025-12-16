@@ -1,6 +1,6 @@
 namespace RpsBackend.DTOs;
 
-public class GoogleIdTokenRequest
-    {
-        public string IdToken { get; set; } = string.Empty;
-    }
+public class GoogleAccessTokenRequest
+{
+    public string AccessToken { get; set; } = "";
+}

@@ -21,11 +21,21 @@ namespace RpsBackend.Services
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
-        public async Task<User> GetOrCreateFromGoogleAsync(GoogleJsonWebSignature.Payload payload)
+        // ✅ Existing method stays (ID token flow)
+        public Task<User> GetOrCreateFromGoogleAsync(GoogleJsonWebSignature.Payload payload)
         {
             var googleSub = payload.Subject;
             var name = payload.Name ?? string.Empty;
             var avatar = payload.Picture ?? string.Empty;
+
+            return GetOrCreateFromGoogleAsync(googleSub, name, avatar);
+        }
+
+        // ✅ New overload (access token -> userinfo flow)
+        public async Task<User> GetOrCreateFromGoogleAsync(string googleSub, string name, string avatarUrl)
+        {
+            name ??= string.Empty;
+            avatarUrl ??= string.Empty;
 
             // Look up existing user by GoogleId
             var user = await _db.Users
@@ -33,7 +43,6 @@ namespace RpsBackend.Services
 
             if (user is not null)
             {
-                // Optional: update name/avatar if they changed
                 var changed = false;
 
                 if (user.Name != name)
@@ -42,9 +51,9 @@ namespace RpsBackend.Services
                     changed = true;
                 }
 
-                if (user.AvatarUrl != avatar)
+                if (user.AvatarUrl != avatarUrl)
                 {
-                    user.AvatarUrl = avatar;
+                    user.AvatarUrl = avatarUrl;
                     changed = true;
                 }
 
@@ -61,7 +70,7 @@ namespace RpsBackend.Services
             {
                 GoogleId = googleSub,
                 Name = name,
-                AvatarUrl = avatar,
+                AvatarUrl = avatarUrl,
                 CreatedAt = DateTime.UtcNow
             };
 

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RpsBackend.DTOs;
 using RpsBackend.Services;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace RpsBackend.Controllers;
@@ -22,14 +21,20 @@ public class UserTokenController : ControllerBase
         _authService = authService;
     }
 
+    [AllowAnonymous]
     [HttpPost]
-    public async Task<IActionResult> ReceiveGoogleId([FromBody] GoogleIdTokenRequest request)
+    public async Task<IActionResult> ReceiveGoogleId([FromBody] GoogleAccessTokenRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.AccessToken))
+            return BadRequest(new { error = "Missing accessToken" });
+
         try
         {
-            var payload = await _authService.VerifyGoogleIdAsync(request.IdToken);
+            // ✅ Access token -> userinfo
+            var (sub, name, picture) = await _authService.GetGoogleUserInfoAsync(request.AccessToken);
 
-            var user = await _userService.GetOrCreateFromGoogleAsync(payload);
+            // ✅ Uses the new overload we added
+            var user = await _userService.GetOrCreateFromGoogleAsync(sub, name, picture);
 
             var appJwt = _jwtService.GenerateToken(user);
 
@@ -58,20 +63,22 @@ public class UserTokenController : ControllerBase
         }
     }
 
+
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<MeResponseDto>> Me()
     {
-        var userIdStr = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var userIdStr =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub"); 
+
         if (!int.TryParse(userIdStr, out var userId))
             return Unauthorized();
-            
+
         var user = await _userService.GetUserByIdAsync(userId);
 
         if (user is null)
-            return Unauthorized(); 
-
-        System.Diagnostics.Debug.WriteLine("hit");
+            return Unauthorized();
 
         return Ok(new MeResponseDto
         {

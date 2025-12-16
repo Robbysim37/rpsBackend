@@ -9,12 +9,11 @@ using RpsBackend.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpClient();
 
 var connectionString =
     Environment.GetEnvironmentVariable("DefaultConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-Console.WriteLine($"Using connection string: {connectionString}");
 
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -40,23 +39,37 @@ builder.Services.AddScoped<IJwt, JwtService>();
 
 // JWT Bearer validation middleware
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwt.Issuer,
+  .AddJwtBearer(options =>
+  {
+      options.TokenValidationParameters = new TokenValidationParameters
+      {
+          ValidateIssuer = true,
+          ValidIssuer = jwt.Issuer,
 
-            ValidateAudience = true,
-            ValidAudience = jwt.Audience,
+          ValidateAudience = true,
+          ValidAudience = jwt.Audience,
 
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+          ValidateIssuerSigningKey = true,
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
 
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromMinutes(2)
-        };
-    });
+          ValidateLifetime = true,
+          ClockSkew = TimeSpan.FromMinutes(2)
+      };
+
+      options.Events = new JwtBearerEvents
+      {
+          OnAuthenticationFailed = ctx =>
+          {
+              Console.WriteLine("AUTH FAILED: " + ctx.Exception.ToString());
+              return Task.CompletedTask;
+          },
+          OnChallenge = ctx =>
+          {
+              Console.WriteLine($"CHALLENGE: {ctx.Error} | {ctx.ErrorDescription}");
+              return Task.CompletedTask;
+          }
+      };
+  });
 
 builder.Services.AddAuthorization();
 
