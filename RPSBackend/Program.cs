@@ -67,7 +67,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173",
-                "https://rps-frontend-tan.vercel.app/" 
+                "https://rps-frontend-tan.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -76,7 +76,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseCors("AllowFrontend");
+app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
