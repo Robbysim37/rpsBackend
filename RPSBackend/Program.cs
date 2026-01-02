@@ -30,6 +30,7 @@ builder.Services.AddScoped<AlgorithmTestingService>();
 builder.Services.AddScoped<StatsGatheringService>();
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PredictionService>();
 
 // Bind Jwt settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
