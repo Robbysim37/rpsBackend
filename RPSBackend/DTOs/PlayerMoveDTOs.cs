@@ -3,7 +3,7 @@ namespace RpsBackend.DTOs
     public class PlayRequestDto
     {
         public Move[] HumanMoves { get; set; } = Array.Empty<Move>();
-        public Result[]? PreviousHumanResults { get; set; }
+        public Result[] PreviousHumanResults { get; set; } = Array.Empty<Result>();
     }
 
     public class PlayResponseDto
