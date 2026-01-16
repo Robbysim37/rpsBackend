@@ -68,9 +68,10 @@ public class UserTokenController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<MeResponseDto>> Me()
     {
-        var userIdStr =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub"); 
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userIdStr))
+            return Unauthorized();
 
         if (!int.TryParse(userIdStr, out var userId))
             return Unauthorized();

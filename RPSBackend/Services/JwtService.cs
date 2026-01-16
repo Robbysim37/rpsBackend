@@ -26,9 +26,16 @@ namespace RpsBackend.Services
             // Keep claims minimal. The key one is your local user Id.
             var claims = new List<Claim>
             {
+                // ✅ Standard ASP.NET “user id”
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+
+                // ✅ Optional: keep JWT subject consistent too
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim("name", user.Name ?? string.Empty),
-                new Claim("googleSub", user.GoogleId ?? string.Empty)
+
+                new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
+
+                // ✅ Make this name explicit (avoid confusion with real Google sub)
+                new Claim("google_id", user.GoogleId ?? string.Empty)
             };
 
             var token = new JwtSecurityToken(

@@ -8,6 +8,7 @@ namespace RpsBackend.Models
         public Move AiMove { get; set; }
         public Result HumansResult { get; set; }
     }
+
     public class UserGame
     {
         public int Id { get; set; }

@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using RpsBackend.DTOs;
 using RpsBackend.Services;
+using System.Security.Claims;
 
 namespace RpsBackend.Controllers;
 
@@ -64,6 +66,57 @@ public class PlayController : ControllerBase
         var aiMove = _predictionService.PlayMove(playerHistory);
 
         var result = await _gameService.PlayAndPersistAsync(humanMoves, aiMove);
+
+        var response = new PlayResponseDto
+        {
+            AiMove = aiMove,
+            Winner = result
+        };
+
+        return Ok(response);
+    }
+
+    [Authorize]
+    [HttpPost("user")]
+    public async Task<ActionResult<PlayResponseDto>> PlayUserGame([FromBody] PlayRequestDto request)
+    {
+        // Validates that this is request is tied to a valid user
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdStr, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var humanMoves = request.HumanMoves;
+
+        var playerHistory = new List<MoveWithResult>();
+
+        if (humanMoves.Length < playerHistory.Count)
+        {
+            return BadRequest("Move history must be at least as long as result history.");
+        }
+
+        for (int i = 0; i < request.PreviousHumanResults.Length; i++)
+        {
+            var move = request.HumanMoves[i];
+            var gameResult = request.PreviousHumanResults[i];
+
+            playerHistory.Add(new MoveWithResult(move, gameResult));
+        }
+
+        // validate enum (just in case)
+        if (!_gameService.ValidMoves.Contains(humanMoves[humanMoves.Length - 1]))
+        {
+            return BadRequest("Invalid move.");
+        }
+
+        // FIX THIS!!!! game service should no longer take an array, just the current move.
+        // aiMove should take in the history data
+
+        var aiMove = _predictionService.PlayMove(playerHistory);
+
+        var result = await _gameService.PlayAndPersistUserGameAsync(humanMoves, aiMove, userId);
 
         var response = new PlayResponseDto
         {

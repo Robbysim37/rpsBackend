@@ -22,7 +22,7 @@ namespace RpsBackend.Services
         }
 
         
-        /// Plays a game, persists it, and returns the result.
+        /// Plays an anonymous game, persists it, and returns the result.
         /// 
         public async Task<Result> PlayAndPersistAsync(Move[] humanMoves, Move aiMove)
         {
@@ -36,6 +36,26 @@ namespace RpsBackend.Services
             };
 
             _db.AnonymousGames.Add(game);
+            await _db.SaveChangesAsync();
+
+            return result;
+        }
+
+        /// Plays an anonymous game, persists it, and returns the result.
+        /// 
+        public async Task<Result> PlayAndPersistUserGameAsync(Move[] humanMoves, Move aiMove, int userId)
+        {
+            var result = ComputeResult(humanMoves[humanMoves.Length -1], aiMove);
+
+            var game = new UserGame
+            {
+                UserId = userId,
+                HumanMove    = humanMoves[humanMoves.Length -1],
+                AiMove       = aiMove,
+                HumansResult = result
+            };
+
+            _db.UserGames.Add(game);
             await _db.SaveChangesAsync();
 
             return result;

@@ -22,7 +22,7 @@ public class StatsController : ControllerBase
     {
         var response = new AllAnonymousGamesDto
         {
-            anonymousGames = await _statsGatheringService.GetAllAnonymousGames()
+            anonymousGames = await _statsGatheringService.GetAllGames()
         };
 
         return Ok(response);
