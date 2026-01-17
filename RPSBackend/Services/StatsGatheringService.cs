@@ -13,6 +13,21 @@ namespace RpsBackend.Services
             _db = db;
         }
 
+        public async Task<AnonymousGame[]> GetAllUserGames(int userId)
+        {
+            var userGames = await _db.UserGames
+                .AsNoTracking()
+                .Where(g => g.UserId == userId)
+                .Select(g => new AnonymousGame
+                {
+                    HumanMove = g.HumanMove,
+                    AiMove = g.AiMove,
+                    HumansResult = g.HumansResult
+                })
+                .ToListAsync();
+
+            return userGames.ToArray();
+        }
         public async Task<AnonymousGame[]> GetAllGames()
         {
             var anonymous = await _db.AnonymousGames
