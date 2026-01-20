@@ -81,7 +81,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173",
-                "https://rps-frontend-1dzl.vercel.app/"
+                "https://rps-frontend-1dzl.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
